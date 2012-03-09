@@ -653,6 +653,7 @@ void* remap(void* i, void* m){
 typedef struct{
   CvSeq * keypoints;
   CvSeq * descriptors;
+  CvMemStorage* storage;
   int width;
   int height;
 }surf_struct;
@@ -671,11 +672,10 @@ void *extract_surf(void *i, CvArr* mask, int exteneded, double threshold, int nO
   surf_struct* s = malloc(sizeof(surf_struct));
   s->keypoints = keypoints;
   s->descriptors = descriptors;
+  s->storage = storage;
   s->width = image->width;
   s->height = image->height;
 
-  cvReleaseMemStorage(&storage);
-  
   return (void*)s;
 }
 
@@ -822,9 +822,10 @@ int* locatePlanarObject(void *o, void *s){
 void release_surf(void* p){
   surf_struct *surf = (surf_struct*)p;
 
-  // free keypoints & descriptors
+  // free keypoints, descriptors, storage
   cvRelease((void **)&surf->keypoints);
   cvRelease((void **)&surf->descriptors);
+  cvReleaseMemStorage(&surf->storage);
 
   free(surf);
 }
