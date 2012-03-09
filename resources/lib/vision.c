@@ -674,6 +674,9 @@ void *extract_surf(void *i, CvArr* mask, int exteneded, double threshold, int nO
   s->descriptors = descriptors;
   s->width = image->width;
   s->height = image->height;
+
+  cvReleaseMemStorage(&storage);
+  
   return (void*)s;
 }
 
@@ -819,8 +822,11 @@ int* locatePlanarObject(void *o, void *s){
 
 void release_surf(void* p){
   surf_struct *surf = (surf_struct*)p;
-  cvClearMemStorage(surf->keypoints->storage);
-  cvClearMemStorage(surf->descriptors->storage);
+
+  // free keypoints & descriptors
+  cvRelease((void **)&surf->keypoints);
+  cvRelease((void **)&surf->descriptors);
+
   free(surf);
 }
 
