@@ -59,7 +59,7 @@ void* capture_from_cam(int i){
    
   /* always check */
   if (!ptr) {
-    fprintf( stderr, "Cannot open initialize webcam!\n" );
+    fprintf(stderr, "Cannot open initialize webcam!\n");
     return NULL;
   }
   
@@ -137,7 +137,7 @@ int grab_frame(void* capture){
 
 void release_capture(void* cap){
   CvCapture* capture = (CvCapture*)cap;
-  cvReleaseCapture( &capture);
+  cvReleaseCapture(&capture);
 }
 
 void* load_image(char* file, int color){
@@ -152,7 +152,7 @@ void* load_image(char* file, int color){
 }
 
 void save_image(void* image, char* file){
-  cvSaveImage( file, (IplImage*)image, NULL);
+  cvSaveImage(file, (IplImage*)image, NULL);
 }
 
 void release_image(void* p){
@@ -348,7 +348,7 @@ void* threshold(void* i, double th, double maxVal, int type){
 }
 
 void* load_cascade(char* f){
-  return (void*)cvLoad(f, 0, 0, 0 );
+  return (void*)cvLoad(f, 0, 0, 0);
 }
 
 int* haar_detect_objects(void* i, void* c, 
@@ -569,8 +569,8 @@ void* rotate_image(void *s, float angle_degrees){
   int w = src->width;
   int h = src->height;
   float angle_radians = angle_degrees * ((float)CV_PI / 180.0f);
-  m[0] = (float)( cos(angle_radians) );
-  m[1] = (float)( sin(angle_radians) );
+  m[0] = (float)(cos(angle_radians));
+  m[1] = (float)(sin(angle_radians));
   m[3] = -m[1];
   m[4] = m[0];
   m[2] = w*0.5f;  
@@ -646,7 +646,7 @@ void* remap(void* i, void* m){
   undistort_map* map = (undistort_map*)m;
   IplImage *clone = cvCloneImage(img);
 
-  cvRemap( img, clone, map->mapx, map->mapy, CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS, cvScalarAll(0));
+  cvRemap(img, clone, map->mapx, map->mapy, CV_INTER_LINEAR+CV_WARP_FILL_OUTLIERS, cvScalarAll(0));
   return (void*)clone;
 }
 
@@ -665,9 +665,8 @@ void *extract_surf(void *i, CvArr* mask, int exteneded, double threshold, int nO
   CvSURFParams params = cvSURFParams(threshold, exteneded);
   params.nOctaves = nOctaves;
   params.nOctaveLayers = nOctaveLayers;
-
-
-  cvExtractSURF(image, mask, &keypoints, &descriptors, storage, params ,0);
+  
+  cvExtractSURF(image, mask, &keypoints, &descriptors, storage, params, 0);
 
   surf_struct* s = malloc(sizeof(surf_struct));
   s->keypoints = keypoints;
@@ -687,7 +686,7 @@ int *surf_points(void *s){
   vals[0] = image->keypoints->total;
   int i,k;
 
-  for( i=0, k=1; i < image->keypoints->total; i++, k+=3){
+  for(i=0, k=1; i < image->keypoints->total; i++, k+=3){
     CvSURFPoint* r = (CvSURFPoint*)cvGetSeqElem(image->keypoints, i);
 
     vals[k] = cvRound(r->pt.x);
@@ -700,15 +699,15 @@ int *surf_points(void *s){
 
 double compareSURFDescriptors(const float* d1, const float* d2, double best, int length){
     double total_cost = 0;
-    assert( length % 4 == 0 );
+    assert(length % 4 == 0);
     int i;
-    for( i = 0; i < length; i += 4 ){
+    for(i = 0; i < length; i += 4){
         double t0 = d1[i] - d2[i];
         double t1 = d1[i+1] - d2[i+1];
         double t2 = d1[i+2] - d2[i+2];
         double t3 = d1[i+3] - d2[i+3];
         total_cost += t0*t0 + t1*t1 + t2*t2 + t3*t3;
-        if( total_cost > best )
+        if(total_cost > best)
             break;
     }
     return total_cost;
@@ -721,31 +720,31 @@ int naiveNearestNeighbor(const float* vec, int laplacian,
     int i, neighbor = -1;
     double d, dist1 = 1e6, dist2 = 1e6;
     CvSeqReader reader, kreader;
-    cvStartReadSeq( model_keypoints, &kreader, 0 );
-    cvStartReadSeq( model_descriptors, &reader, 0 );
+    cvStartReadSeq(model_keypoints, &kreader, 0);
+    cvStartReadSeq(model_descriptors, &reader, 0);
 
-    for( i = 0; i < model_descriptors->total; i++ ){
+    for(i = 0; i < model_descriptors->total; i++){
         const CvSURFPoint* kp = (const CvSURFPoint*)kreader.ptr;
         const float* mvec = (const float*)reader.ptr;
-    	CV_NEXT_SEQ_ELEM( kreader.seq->elem_size, kreader );
-        CV_NEXT_SEQ_ELEM( reader.seq->elem_size, reader );
-        if( laplacian != kp->laplacian )
+    	CV_NEXT_SEQ_ELEM(kreader.seq->elem_size, kreader);
+        CV_NEXT_SEQ_ELEM(reader.seq->elem_size, reader);
+        if(laplacian != kp->laplacian)
             continue;
-        d = compareSURFDescriptors( vec, mvec, dist2, length );
-        if( d < dist1 ){
+        d = compareSURFDescriptors(vec, mvec, dist2, length);
+        if(d < dist1){
             dist2 = dist1;
             dist1 = d;
             neighbor = i;
         }
-        else if ( d < dist2 )
+        else if (d < dist2)
             dist2 = d;
     }
-    if ( dist1 < 0.6*dist2 )
+    if (dist1 < 0.6*dist2)
         return neighbor;
     return -1;
 }
 
-CvSeq* findPairs( const CvSeq* objectKeypoints, const CvSeq* objectDescriptors,
+CvSeq* findPairs(const CvSeq* objectKeypoints, const CvSeq* objectDescriptors,
                   const CvSeq* imageKeypoints, const CvSeq* imageDescriptors){
   CvMemStorage* storage = cvCreateMemStorage(0);
   CvSeq* seq = cvCreateSeq(0, sizeof(CvSeq), sizeof(int), storage);
@@ -755,13 +754,13 @@ CvSeq* findPairs( const CvSeq* objectKeypoints, const CvSeq* objectDescriptors,
   cvStartReadSeq(objectKeypoints, &kreader, 0);
   cvStartReadSeq(objectDescriptors, &reader, 0);
   
-  for( i = 0; i < objectDescriptors->total; i++ ){
+  for(i = 0; i < objectDescriptors->total; i++){
     const CvSURFPoint* kp = (const CvSURFPoint*)kreader.ptr;
     const float* descriptor = (const float*)reader.ptr;
-    CV_NEXT_SEQ_ELEM( kreader.seq->elem_size, kreader );
-    CV_NEXT_SEQ_ELEM( reader.seq->elem_size, reader );
-    int nearest_neighbor = naiveNearestNeighbor( descriptor, kp->laplacian, imageKeypoints, imageDescriptors );
-    if( nearest_neighbor >= 0 ){
+    CV_NEXT_SEQ_ELEM(kreader.seq->elem_size, kreader);
+    CV_NEXT_SEQ_ELEM(reader.seq->elem_size, reader);
+    int nearest_neighbor = naiveNearestNeighbor(descriptor, kp->laplacian, imageKeypoints, imageDescriptors);
+    if(nearest_neighbor >= 0){
       cvSeqPush(seq, &i);
       cvSeqPush(seq, &nearest_neighbor);
     }
@@ -780,16 +779,16 @@ int* locatePlanarObject(void *o, void *s){
   CvSeq* imageDescriptors = image->descriptors;
   int i, n, k;
 
-  CvSeq* seq = findPairs( objectKeypoints, objectDescriptors, imageKeypoints, imageDescriptors);
+  CvSeq* seq = findPairs(objectKeypoints, objectDescriptors, imageKeypoints, imageDescriptors);
   
   n = seq->total/2;
-  if( n < 4 )
+  if(n < 4)
     return 0;
 
   CvPoint2D32f *pt1 = (CvPoint2D32f *)malloc(sizeof(CvPoint2D32f) * n);
   CvPoint2D32f *pt2 = (CvPoint2D32f *)malloc(sizeof(CvPoint2D32f) * n);
 
-  for( i = 0; i < n; i++ ){
+  for(i = 0; i < n; i++){
     int* p1 = (int*)cvGetSeqElem(seq, i*2);
     int* p2 = (int*)cvGetSeqElem(seq, i*2+1);
 
@@ -800,14 +799,14 @@ int* locatePlanarObject(void *o, void *s){
   double h[9];
   CvMat _h = cvMat(3, 3, CV_64F, h);
   CvMat _pt1, _pt2;
-  _pt1 = cvMat(1, n, CV_32FC2, &pt1[0] );
-  _pt2 = cvMat(1, n, CV_32FC2, &pt2[0] );
-  if( !cvFindHomography(&_pt1, &_pt2, &_h, CV_RANSAC, 5, NULL))
+  _pt1 = cvMat(1, n, CV_32FC2, &pt1[0]);
+  _pt2 = cvMat(1, n, CV_32FC2, &pt2[0]);
+  if(!cvFindHomography(&_pt1, &_pt2, &_h, CV_RANSAC, 5, NULL))
     return 0;
 
   int* vals = malloc(8 * sizeof(int));
 
-  for(i=0, k=0; i < 4; i++, k+=2 ){
+  for(i=0, k=0; i < 4; i++, k+=2){
     double x = src_corners[i].x, y = src_corners[i].y;
     double Z = 1./(h[6]*x + h[7]*y + h[8]);
     double X = (h[0]*x + h[1]*y + h[2])*Z;
@@ -866,7 +865,7 @@ void update_hue_image (const IplImage* image, camshift_struct* obj) {
              obj->mask);                             //destination
   
   //extract the hue channel, split: src, dest channels
-  cvSplit(obj->hsv, obj->hue, 0, 0, 0 );
+  cvSplit(obj->hsv, obj->hue, 0, 0, 0);
 }
 
 camshift_struct* camshift_init (void* i, int x, int y, int w, int h, int vmin, int vmax, int smin) {
@@ -903,7 +902,7 @@ camshift_struct* camshift_init (void* i, int x, int y, int w, int h, int vmin, i
   cvSetImageROI(obj->hue, region);
   cvSetImageROI(obj->mask, region);
   cvCalcHist(&obj->hue, obj->hist, 0, obj->mask);
-  cvGetMinMaxHistValue(obj->hist, 0, &max_val, 0, 0 );
+  cvGetMinMaxHistValue(obj->hist, 0, &max_val, 0, 0);
   cvConvertScale(obj->hist->bins, obj->hist->bins,
                  max_val ? 255.0/max_val : 0, 0);
   cvResetImageROI(obj->hue);
@@ -978,11 +977,11 @@ int* max_rect(int x1, int y1, int w1, int h1, int x2, int y2, int w2, int h2){
 float* good_features_to_track(void* j, int max_count, double quality, double min_distance, int win_size){
   IplImage* img = (IplImage*)j;
 
-  IplImage* grey = cvCreateImage( cvGetSize(img), 8, 1 );
-  cvCvtColor( img, grey, CV_BGR2GRAY );
+  IplImage* grey = cvCreateImage(cvGetSize(img), 8, 1);
+  cvCvtColor(img, grey, CV_BGR2GRAY);
 
-  IplImage* eig = cvCreateImage( cvGetSize(grey), 32, 1 );
-  IplImage* temp = cvCreateImage( cvGetSize(grey), 32, 1 );
+  IplImage* eig = cvCreateImage(cvGetSize(grey), 32, 1);
+  IplImage* temp = cvCreateImage(cvGetSize(grey), 32, 1);
 
   CvPoint2D32f* points = (CvPoint2D32f*)malloc(max_count * sizeof(CvPoint2D32f));
 
@@ -1000,8 +999,8 @@ float* good_features_to_track(void* j, int max_count, double quality, double min
   }
 
   free(points);
-  cvReleaseImage( &eig );
-  cvReleaseImage( &temp );
+  cvReleaseImage(&eig);
+  cvReleaseImage(&temp);
 
   return ret;
 }
@@ -1010,11 +1009,11 @@ float* calc_optical_flow_pyr_lk(void* a, void* b, int count, float* points, int 
   IplImage* imgA = (IplImage*)a;
   IplImage* imgB = (IplImage*)b;
 
-  IplImage* greyA = cvCreateImage( cvGetSize(imgA), 8, 1 );
-  cvCvtColor( imgA, greyA, CV_BGR2GRAY );
+  IplImage* greyA = cvCreateImage(cvGetSize(imgA), 8, 1);
+  cvCvtColor(imgA, greyA, CV_BGR2GRAY);
 
-  IplImage* greyB = cvCreateImage( cvGetSize(imgB), 8, 1 );
-  cvCvtColor( imgB, greyB, CV_BGR2GRAY );
+  IplImage* greyB = cvCreateImage(cvGetSize(imgB), 8, 1);
+  cvCvtColor(imgB, greyB, CV_BGR2GRAY);
 
   char features_found[count];
 
@@ -1033,8 +1032,8 @@ float* calc_optical_flow_pyr_lk(void* a, void* b, int count, float* points, int 
   }
 
   cvCalcOpticalFlowPyrLK(greyA, greyB, pyrA, pyrB, cornersA, cornersB, count,
-                         cvSize( win_size, win_size ), level, features_found, 0,
-                         cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03), 0 );
+                         cvSize(win_size, win_size), level, features_found, 0,
+                         cvTermCriteria(CV_TERMCRIT_ITER|CV_TERMCRIT_EPS,20,0.03), 0);
 
   float* ret = (float*)malloc((3 * count) * sizeof(float));
 
